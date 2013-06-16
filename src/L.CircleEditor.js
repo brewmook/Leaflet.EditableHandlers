@@ -46,6 +46,13 @@ L.CircleEditor = L.Circle.extend ({
 		this._initMarkers();
 	},
 
+	_circumferenceCoord: function() {
+		var circleBounds = this.getBounds();
+		var swCoord = circleBounds.getSouthWest();
+		var neCoord = circleBounds.getNorthEast();
+		return new L.LatLng(neCoord.lat, (neCoord.lng + swCoord.lng) / 2, true);
+	},
+
 	_initMarkers: function () {
 		this._markerGroup = new L.LayerGroup();
 		this._markers = [];
@@ -54,11 +61,7 @@ L.CircleEditor = L.Circle.extend ({
 		markerCenter.on('click', this._onCenterMarkerClick, this);
 		this._markers.push(markerCenter);
 
-		var circleBounds = this.getBounds(),
-			swCoord = circleBounds.getSouthWest(),
-			neCoord = circleBounds.getNorthEast(),
-			northCenterCoord = new L.LatLng(neCoord.lat, (neCoord.lng + neCoord.lng) / 2, true),
-			markerNorthCenter = this._createMarker(northCenterCoord, 1);
+		var markerNorthCenter = this._createMarker(this._circumferenceCoord(), 1);
 		this._markers.push(markerNorthCenter);
 	},
 
@@ -111,14 +114,8 @@ L.CircleEditor = L.Circle.extend ({
 	_onCenterMoveEnd: function (e) {
 		var marker = e.target;
 		
-		//now resetting the side point
-		var circleBounds = this.getBounds(),
-			swCoord = circleBounds.getSouthWest(),
-			neCoord = circleBounds.getNorthEast(),
-			northCenterCoord = new L.LatLng(neCoord.lat, (neCoord.lng + neCoord.lng) / 2, true);
-
 		var mm = this._markers[1];
-		mm.setLatLng(northCenterCoord);
+		mm.setLatLng(this._circumferenceCoord());
 		mm.setOpacity(1);
 
 		this.fire('centerchange');
